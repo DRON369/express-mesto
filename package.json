@@ -1,0 +1,25 @@
+{
+  "name": "express-mesto",
+  "version": "1.0.0",
+  "description": "Backend for project mesto on node.js express",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "npx eslint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DRON369/express-mesto.git"
+  },
+  "author": "dron369",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DRON369/express-mesto/issues"
+  },
+  "homepage": "https://github.com/DRON369/express-mesto#readme",
+  "devDependencies": {
+    "eslint": "^7.24.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1"
+  }
+}
