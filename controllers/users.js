@@ -1,71 +1,60 @@
-const User = require("../models/user");
+import {
+  find, findById, create, findByIdAndUpdate,
+} from '../models/user';
 
-module.exports.getUsers = (req, res) => {
-  User
-    .find({}).select("-__v")
+export function getUsers(req, res) {
+  find({}).select('-__v')
     .then((user) => res.send(user))
-    .catch((err) =>
-      res.status(500).send({ message: `Произошла ошибка: ${err}` })
-    );
-};
+    .catch((err) => res.status(500).send({ message: `Произошла ошибка: ${err}` }));
+}
 
-module.exports.getUsersById = (req, res) => {
-  const userId = req.params.userId;
-  User
-    .findById(userId)
-    .select("-__v")
+export function getUsersById(req, res) {
+  const { userId } = req.params;
+  findById(userId)
+    .select('-__v')
     .then((user) => res.send(user))
     .catch((err) => {
-      err.name === "CastError"
+      err.name === 'CastError'
         ? res
-            .status(404)
-            .send({ message: `Пользователь с id ${userId} не найден!` })
+          .status(404)
+          .send({ message: `Пользователь с id ${userId} не найден!` })
         : res.status(500).send({ message: `Произошла ошибка: ${err}` });
     });
-};
+}
 
-module.exports.createUser = (req, res) => {
+export function createUser(req, res) {
   const { name, about, avatar } = req.body;
-  User
-    .create({ name, about, avatar })
-    .then((user) => {
-      return User.findById(user._id).select("-__v");
-      }).then((user) => {
-        res.send(user);
-      })
+  create({ name, about, avatar })
+    .then((user) => findById(user._id).select('-__v')).then((user) => {
+      res.send(user);
+    })
     .catch((err) => {
-      err.name === "ValidationError" || "SyntaxError"
+      (err.name === 'ValidationError' || 'SyntaxError')
         ? res
-            .status(400)
-            .send({ message: `В запросе переданы некорректные данные` })
+          .status(400)
+          .send({ message: 'В запросе переданы некорректные данные' })
         : res.status(500).send({ message: `Произошла ошибка: ${err}` });
     });
-};
+}
 
-module.exports.updateUser = (req, res) => {
+export function updateUser(req, res) {
   const { name, about, avatar } = req.body;
-  User
-    .findByIdAndUpdate(req.user._id, { name, about, avatar }).select("-__v")
+  findByIdAndUpdate(req.user._id, { name, about, avatar }).select('-__v')
     .then((user) => res.send(user))
-    .catch((err) =>
-      err.name === "CastError"
-        ? res
-            .status(404)
-            .send({ message: `Пользователь с id ${userId} не найден!` })
-        : res.status(500).send({ message: `Произошла ошибка: ${err}` })
-    );
-};
+    .catch((err) => (err.name === 'CastError'
+      ? res
+        .status(404)
+        .send({ message: `Пользователь с id ${req.user._id} не найден!` })
+      : res.status(500).send({ message: `Произошла ошибка: ${err}` })));
+}
 
-module.exports.updateUserAvatar = (req, res) => {
+export function updateUserAvatar(req, res) {
   const { avatar } = req.body;
-  User
-    .findByIdAndUpdate(req.user._id, { avatar }).select("-__v")
+  findByIdAndUpdate(req.user._id, { avatar }).select('-__v')
     .then((user) => res.send(user))
-    .catch((err) =>
-      err.name === "CastError"
-        ? res
-            .status(404)
-            .send({ message: `Пользователь с id ${userId} не найден!` })
-        : res.status(500).send({ message: `Произошла ошибка: ${err}` })
-    );
-};
+    .catch((err) => (err.name === 'CastError'
+      ? res
+        .status(404)
+        .send({ message: `Пользователь с id ${req.user._id} не найден!` })
+      : res.status(500).send({ message: `Произошла ошибка: ${err}` })));
+}

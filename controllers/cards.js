@@ -1,65 +1,66 @@
-const card = require("../models/card");
-const Card = require("../models/card");
+import {
+  find, create, findById, findByIdAndDelete, findByIdAndUpdate,
+} from '../models/card';
 
-module.exports.getCards = (req, res) => {
-  Card.find({})
-    .select("-__v")
+export function getCards(req, res) {
+  find({})
+    .select('-__v')
     .then((card) => res.send(card))
-    .catch((err) =>
-      res.status(500).send({ message: `Произошла ошибка: ${err}` })
-    );
-};
+    .catch((err) => res.status(500).send({ message: `Произошла ошибка: ${err}` }));
+}
 
-module.exports.createCard = (req, res) => {
-  const { name, link, likes, createdAt } = req.body;
+export function createCard(req, res) {
+  const {
+    name, link, likes, createdAt,
+  } = req.body;
   const owner = req.user._id;
-  Card.create({ name, link, owner, likes, createdAt })
-    .then((card) => {
-      return Card.findById(card._id).select("-__v");
-    })
+  create({
+    name, link, owner, likes, createdAt,
+  })
+    .then((card) => findById(card._id).select('-__v'))
     .then((card) => {
       res.send(card);
     })
     .catch((err) => {
-      err.name === "ValidationError" || "SyntaxError"
+      (err.name === 'ValidationError' || 'SyntaxError')
         ? res
-            .status(400)
-            .send({ message: `В запросе переданы некорректные данные ${err}` })
+          .status(400)
+          .send({ message: `В запросе переданы некорректные данные ${err}` })
         : res.status(500).send({ message: `Произошла ошибка: ${err}` });
     });
-};
+}
 
-module.exports.deleteCard = (req, res) => {
-  const cardId = req.params.cardId;
+export function deleteCard(req, res) {
+  const { cardId } = req.params;
   if (!cardId) {
     res.status(404).send({ message: `Карточка с id ${cardId} не найдена!` });
     return;
   }
-  Card.findByIdAndDelete(cardId)
-    .select("-__v")
-    .then((card) =>{
+  findByIdAndDelete(cardId)
+    .select('-__v')
+    .then((card) => {
       if (!card) {
         res.status(404).send({ message: `Карточка с id ${cardId} не найдена!` });
         return;
       }
-      res.send(card)
-      })
+      res.send(card);
+    })
     .catch((err) => {
-      err.name === "CastError"
+      err.name === 'CastError'
         ? res
-            .status(404)
-            .send({ message: `Карточка с id ${cardId} не найдена!` })
+          .status(404)
+          .send({ message: `Карточка с id ${cardId} не найдена!` })
         : res.status(500).send({ message: `Произошла ошибка: ${err}` });
     });
-};
+}
 
-module.exports.likeCard = (req, res) => {
-  Card.findByIdAndUpdate(
+export function likeCard(req, res) {
+  findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
-    { new: true }
+    { new: true },
   )
-    .select("-__v")
+    .select('-__v')
     .then((card) => {
       if (!card) {
         res
@@ -70,21 +71,21 @@ module.exports.likeCard = (req, res) => {
       res.send(card);
     })
     .catch((err) => {
-      err.name === "CastError"
+      err.name === 'CastError'
         ? res
-            .status(404)
-            .send({ message: `Карточка с id ${req.params.cardId} не найдена!` })
+          .status(404)
+          .send({ message: `Карточка с id ${req.params.cardId} не найдена!` })
         : res.status(500).send({ message: `Произошла ошибка: ${err}` });
     });
-};
+}
 
-module.exports.unlikeCard = (req, res) => {
-  Card.findByIdAndUpdate(
+export function unlikeCard(req, res) {
+  findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
-    { new: true }
+    { new: true },
   )
-    .select("-__v")
+    .select('-__v')
     .then((card) => {
       if (!card) {
         res
@@ -95,10 +96,10 @@ module.exports.unlikeCard = (req, res) => {
       res.send(card);
     })
     .catch((err) => {
-      err.name === "CastError"
+      err.name === 'CastError'
         ? res
-            .status(404)
-            .send({ message: `Карточка с id ${req.params.cardId} не найдена!` })
+          .status(404)
+          .send({ message: `Карточка с id ${req.params.cardId} не найдена!` })
         : res.status(500).send({ message: `Произошла ошибка: ${err}` });
     });
-};
+}
