@@ -1,6 +1,6 @@
-import express from 'express';
-import { connect } from 'mongoose';
-import { json, urlencoded } from 'body-parser';
+const express = require('express');
+const { connect } = require('mongoose');
+const { json, urlencoded } = require('body-parser');
 
 const { PORT = 3000 } = process.env;
 
