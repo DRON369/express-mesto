@@ -1,28 +1,71 @@
-const user = require("../models/user");
-const router = require("express").Router();
+const User = require("../models/user");
 
 module.exports.getUsers = (req, res) => {
-  user.find({})
-    .then((user) => res.send({ users: user }))
-    .catch(() => res.status(500).send({ message: "Произошла ошибка" }));
+  User
+    .find({}).select("-__v")
+    .then((user) => res.send(user))
+    .catch((err) =>
+      res.status(500).send({ message: `Произошла ошибка: ${err}` })
+    );
 };
 
 module.exports.getUsersById = (req, res) => {
   const userId = req.params.userId;
-
-  if (!userId) {
-    res.send({ error: 'Такого пользователя нет' });
-    return;
-  }
-  user.findById(userId)
-  .then((user) => res.send({ user: user }))
-  .catch(() => res.status(500).send({ message: "Произошла ошибка" }));
+  User
+    .findById(userId)
+    .select("-__v")
+    .then((user) => res.send(user))
+    .catch((err) => {
+      err.name === "CastError"
+        ? res
+            .status(404)
+            .send({ message: `Пользователь с id ${userId} не найден!` })
+        : res.status(500).send({ message: `Произошла ошибка: ${err}` });
+    });
 };
 
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
-  user
+  User
     .create({ name, about, avatar })
-    .then((user) => res.send({ user: user }))
-    .catch(() => res.status(500).send({ message: "Произошла ошибка" }));
+    .then((user) => {
+      return User.findById(user._id).select("-__v");
+      }).then((user) => {
+        res.send(user);
+      })
+    .catch((err) => {
+      err.name === "ValidationError" || "SyntaxError"
+        ? res
+            .status(400)
+            .send({ message: `В запросе переданы некорректные данные` })
+        : res.status(500).send({ message: `Произошла ошибка: ${err}` });
+    });
+};
+
+module.exports.updateUser = (req, res) => {
+  const { name, about, avatar } = req.body;
+  User
+    .findByIdAndUpdate(req.user._id, { name, about, avatar })
+    .then((user) => res.send(user))
+    .catch((err) =>
+      err.name === "CastError"
+        ? res
+            .status(404)
+            .send({ message: `Пользователь с id ${userId} не найден!` })
+        : res.status(500).send({ message: `Произошла ошибка: ${err}` })
+    );
+};
+
+module.exports.updateUserAvatar = (req, res) => {
+  const { avatar } = req.body;
+  User
+    .findByIdAndUpdate(req.user._id, { avatar }).select("-__v")
+    .then((user) => res.send(user))
+    .catch((err) =>
+      err.name === "CastError"
+        ? res
+            .status(404)
+            .send({ message: `Пользователь с id ${userId} не найден!` })
+        : res.status(500).send({ message: `Произошла ошибка: ${err}` })
+    );
 };
