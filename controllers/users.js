@@ -45,7 +45,7 @@ module.exports.createUser = (req, res) => {
 module.exports.updateUser = (req, res) => {
   const { name, about, avatar } = req.body;
   User
-    .findByIdAndUpdate(req.user._id, { name, about, avatar })
+    .findByIdAndUpdate(req.user._id, { name, about, avatar }).select("-__v")
     .then((user) => res.send(user))
     .catch((err) =>
       err.name === "CastError"

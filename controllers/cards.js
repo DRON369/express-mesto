@@ -1,3 +1,4 @@
+const card = require("../models/card");
 const Card = require("../models/card");
 
 module.exports.getCards = (req, res) => {
@@ -15,9 +16,10 @@ module.exports.createCard = (req, res) => {
   Card.create({ name, link, owner, likes, createdAt })
     .then((card) => {
       return Card.findById(card._id).select("-__v");
-      }).then((card) => {
-        res.send(card);
-      })
+    })
+    .then((card) => {
+      res.send(card);
+    })
     .catch((err) => {
       err.name === "ValidationError" || "SyntaxError"
         ? res
@@ -29,9 +31,19 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   const cardId = req.params.cardId;
+  if (!cardId) {
+    res.status(404).send({ message: `Карточка с id ${cardId} не найдена!` });
+    return;
+  }
   Card.findByIdAndDelete(cardId)
     .select("-__v")
-    .then((card) => res.send(card))
+    .then((card) =>{
+      if (!card) {
+        res.status(404).send({ message: `Карточка с id ${cardId} не найдена!` });
+        return;
+      }
+      res.send(card)
+      })
     .catch((err) => {
       err.name === "CastError"
         ? res
