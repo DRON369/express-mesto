@@ -1,4 +1,5 @@
 const express = require('express');
+const helmet = require('helmet'); // Защита приложения от web-уязвимостей путём настройки заголовков http
 const { connect } = require('mongoose');
 const { json, urlencoded } = require('body-parser');
 
@@ -6,6 +7,7 @@ const { PORT = 3000 } = process.env;
 
 const app = express();
 
+app.use(helmet()); // Защита приложения от web-уязвимостей путём настройки заголовков http
 app.use(json());
 app.use(urlencoded({ extended: true }));
 
@@ -28,6 +30,10 @@ app.use((req, res, next) => {
 
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
+
+app.get('*', (req, res) => {
+  res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
+});
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);

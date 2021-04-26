@@ -8,14 +8,18 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUsersById = (req, res) => {
   const { userId } = req.params;
-  User.findById(userId)
-    .select('-__v')
+  User.findById(userId).select('-__v')
+    .orFail(new Error('NotValidId'))
     .then((user) => res.send(user))
     .catch((err) => {
+      if (err.message === 'NotValidId') {
+        res.status(404).send({ message: `Пользователь с id ${userId} не найден!` });
+        return;
+      }
       err.name === 'CastError'
         ? res
-          .status(404)
-          .send({ message: `Пользователь с id ${userId} не найден!` })
+          .status(400)
+          .send({ message: 'В запросе переданы некорректные данные' })
         : res.status(500).send({ message: `Произошла ошибка: ${err}` });
     });
 };
@@ -37,22 +41,36 @@ module.exports.createUser = (req, res) => {
 
 module.exports.updateUser = (req, res) => {
   const { name, about, avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, about, avatar }).select('-__v')
+  User.findByIdAndUpdate(req.user._id, { name, about, avatar }, { runValidators: true, new: true }).select('-__v')
+    .orFail(new Error('NotValidId'))
     .then((user) => res.send(user))
-    .catch((err) => (err.name === 'CastError'
-      ? res
-        .status(404)
-        .send({ message: `Пользователь с id ${req.user._id} не найден!` })
-      : res.status(500).send({ message: `Произошла ошибка: ${err}` })));
+    .catch((err) => {
+      if (err.message === 'NotValidId') {
+        res.status(404).send({ message: `Пользователь с id ${req.user._id} не найден!` });
+        return;
+      }
+      err.name === 'CastError' || 'ValidationError'
+        ? res
+          .status(400)
+          .send({ message: 'В запросе переданы некорректные данные' })
+        : res.status(500).send({ message: `Произошла ошибка: ${err}` });
+    });
 };
 
 module.exports.updateUserAvatar = (req, res) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { avatar }).select('-__v')
+  User.findByIdAndUpdate(req.user._id, { avatar }, { runValidators: true, new: true }).select('-__v')
+    .orFail(new Error('NotValidId'))
     .then((user) => res.send(user))
-    .catch((err) => (err.name === 'CastError'
-      ? res
-        .status(404)
-        .send({ message: `Пользователь с id ${req.user._id} не найден!` })
-      : res.status(500).send({ message: `Произошла ошибка: ${err}` })));
+    .catch((err) => {
+      if (err.message === 'NotValidId') {
+        res.status(404).send({ message: `Пользователь с id ${req.user._id} не найден!` });
+        return;
+      }
+      err.name === 'CastError' || 'ValidationError'
+        ? res
+          .status(400)
+          .send({ message: 'В запросе переданы некорректные данные' })
+        : res.status(500).send({ message: `Произошла ошибка: ${err}` });
+    });
 };

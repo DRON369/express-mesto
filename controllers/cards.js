@@ -30,24 +30,18 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   const { cardId } = req.params;
-  if (!cardId) {
-    res.status(404).send({ message: `Карточка с id ${cardId} не найдена!` });
-    return;
-  }
-  Card.findByIdAndDelete(cardId)
-    .select('-__v')
-    .then((card) => {
-      if (!card) {
+  Card.findByIdAndDelete(cardId).select('-__v')
+    .orFail(new Error('NotValidId'))
+    .then((card) => res.send(card))
+    .catch((err) => {
+      if (err.message === 'NotValidId') {
         res.status(404).send({ message: `Карточка с id ${cardId} не найдена!` });
         return;
       }
-      res.send(card);
-    })
-    .catch((err) => {
       err.name === 'CastError'
         ? res
-          .status(404)
-          .send({ message: `Карточка с id ${cardId} не найдена!` })
+          .status(400)
+          .send({ message: 'В запросе переданы некорректные данные' })
         : res.status(500).send({ message: `Произошла ошибка: ${err}` });
     });
 };
@@ -59,20 +53,17 @@ module.exports.likeCard = (req, res) => {
     { new: true },
   )
     .select('-__v')
-    .then((card) => {
-      if (!card) {
-        res
-          .status(404)
-          .send({ message: `Карточка с id ${req.params.cardId} не найдена!` });
+    .orFail(new Error('NotValidId'))
+    .then((card) => res.send(card))
+    .catch((err) => {
+      if (err.message === 'NotValidId') {
+        res.status(404).send({ message: `Карточка с id ${req.params.cardId} не найдена!` });
         return;
       }
-      res.send(card);
-    })
-    .catch((err) => {
       err.name === 'CastError'
         ? res
-          .status(404)
-          .send({ message: `Карточка с id ${req.params.cardId} не найдена!` })
+          .status(400)
+          .send({ message: 'Переданы некорректные данные для постановки лайка.' })
         : res.status(500).send({ message: `Произошла ошибка: ${err}` });
     });
 };
@@ -84,20 +75,17 @@ module.exports.unlikeCard = (req, res) => {
     { new: true },
   )
     .select('-__v')
-    .then((card) => {
-      if (!card) {
-        res
-          .status(404)
-          .send({ message: `Карточка с id ${req.params.cardId} не найдена!` });
+    .orFail(new Error('NotValidId'))
+    .then((card) => res.send(card))
+    .catch((err) => {
+      if (err.message === 'NotValidId') {
+        res.status(404).send({ message: `Карточка с id ${req.params.cardId} не найдена!` });
         return;
       }
-      res.send(card);
-    })
-    .catch((err) => {
       err.name === 'CastError'
         ? res
-          .status(404)
-          .send({ message: `Карточка с id ${req.params.cardId} не найдена!` })
+          .status(400)
+          .send({ message: 'Переданы некорректные данные для снятия лайка.' })
         : res.status(500).send({ message: `Произошла ошибка: ${err}` });
     });
 };
