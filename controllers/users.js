@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 module.exports.getUsers = (req, res) => {
@@ -25,18 +27,24 @@ module.exports.getUsersById = (req, res) => {
 };
 
 module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then((user) => User.findById(user._id).select('-__v')).then((user) => {
-      res.send(user);
+  const {
+    name, email, about, avatar,
+  } = req.body;
+  bcrypt.hash(req.body.password, 10).then((hash) => {
+    User.create({
+      name, email, password: hash, about, avatar,
     })
-    .catch((err) => {
-      (err.name === 'ValidationError' || 'SyntaxError')
-        ? res
-          .status(400)
-          .send({ message: 'В запросе переданы некорректные данные' })
-        : res.status(500).send({ message: `Произошла ошибка: ${err}` });
-    });
+      .then((user) => User.findById(user._id).select('-__v')).then((user) => {
+        res.send(user);
+      })
+      .catch((err) => {
+        (err.name === 'ValidationError' || 'SyntaxError')
+          ? res
+            .status(400)
+            .send({ message: 'В запросе переданы некорректные данные' })
+          : res.status(500).send({ message: `Произошла ошибка: ${err}` });
+      });
+  });
 };
 
 module.exports.updateUser = (req, res) => {
@@ -72,5 +80,28 @@ module.exports.updateUserAvatar = (req, res) => {
           .status(400)
           .send({ message: 'В запросе переданы некорректные данные' })
         : res.status(500).send({ message: `Произошла ошибка: ${err}` });
+    });
+};
+
+module.exports.login = (req, res) => {
+  const { email, password } = req.body;
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign(
+        { _id: user._id },
+        'some-secret-key',
+        { expiresIn: '7d' },
+      );
+      res
+        .cookie('jwt', token, {
+          maxAge: 3600000,
+          httpOnly: true,
+        })
+        .end();
+    })
+    .catch((err) => {
+      res
+        .status(401)
+        .send({ message: err.message });
     });
 };
