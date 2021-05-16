@@ -30,6 +30,9 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   const { cardId } = req.params;
+  if (req.user._id !== cardId) {
+    res.status(403).send({ message: 'Нельзя удалять чужие карточки!' });
+  }
   Card.findByIdAndDelete(cardId).select('-__v')
     .orFail(new Error('NotValidId'))
     .then((card) => res.send(card))

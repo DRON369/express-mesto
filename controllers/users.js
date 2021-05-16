@@ -9,7 +9,8 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUsersById = (req, res) => {
-  const { userId } = req.params;
+  const userId = req.user._id;
+  console.log(userId);
   User.findById(userId).select('-__v')
     .orFail(new Error('NotValidId'))
     .then((user) => res.send(user))
@@ -97,7 +98,7 @@ module.exports.login = (req, res) => {
           maxAge: 3600000,
           httpOnly: true,
         })
-        .end();
+        .send({ _id: user._id });
     })
     .catch((err) => {
       res

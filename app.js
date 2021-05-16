@@ -4,6 +4,7 @@ const { connect } = require('mongoose');
 const { json, urlencoded } = require('body-parser');
 const { login, createUser } = require('./controllers/users');
 const { emailValidator } = require('./middlewares/emailValidator');
+const auth = require('./middlewares/auth');
 
 const { PORT = 3000 } = process.env;
 
@@ -22,18 +23,8 @@ connect('mongodb://localhost:27017/mestodb', {
   useFindAndModify: false,
 });
 
-//! Хардкод. Переделать в следующем проекте
-app.use((req, res, next) => {
-  req.user = {
-    _id: '608473fa5bf4ec3208386946',
-  };
-
-  next();
-});
-//! =======================================
-
-app.use('/users', require('./routes/users'));
-app.use('/cards', require('./routes/cards'));
+app.use('/users', auth, require('./routes/users'));
+app.use('/cards', auth, require('./routes/cards'));
 
 app.get('*', (req, res) => {
   res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
