@@ -10,6 +10,12 @@ const cardSchema = new mongoose.Schema({
   link: {
     type: String,
     required: true,
+    validate: {
+      validator(v) {
+        // eslint-disable-next-line no-useless-escape
+        return /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(v);
+      },
+    },
   },
   owner: {
     type: mongoose.Types.ObjectId,
@@ -23,6 +29,6 @@ const cardSchema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
-});
+}, { versionKey: false });
 
 module.exports = mongoose.model('card', cardSchema);
