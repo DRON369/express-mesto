@@ -7,6 +7,7 @@ module.exports.checkEmailUnique = (req, res, next) => {
     if (user) {
       throw new ConflictError('Данный email уже используется');
     }
+    next();
   })
     .catch(next);
 };
