@@ -6,6 +6,7 @@ const { Joi, celebrate, errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const { emailValidator } = require('./middlewares/emailValidator');
 const auth = require('./middlewares/auth');
+const { checkEmailUnique } = require('./middlewares/checkEmailUnique');
 
 const { PORT = 3000 } = process.env;
 
@@ -30,7 +31,7 @@ app.post('/signup', celebrate({
     about: Joi.string(),
     avatar: Joi.string(),
   }),
-}), emailValidator, createUser);
+}), emailValidator, checkEmailUnique, createUser);
 
 // подключаемся к серверу mongo
 connect('mongodb://localhost:27017/mestodb', {
