@@ -7,6 +7,7 @@ const { login, createUser } = require('./controllers/users');
 const { emailValidator } = require('./middlewares/emailValidator');
 const auth = require('./middlewares/auth');
 const { checkEmailUnique } = require('./middlewares/checkEmailUnique');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { PORT = 3000 } = process.env;
 
@@ -15,6 +16,7 @@ const app = express();
 app.use(helmet()); // Защита приложения от web-уязвимостей путём настройки заголовков http
 app.use(json());
 app.use(urlencoded({ extended: true }));
+app.use(requestLogger);
 app.post('/signin',
   celebrate({
     body: Joi.object().keys({
@@ -47,6 +49,7 @@ app.get('*', (req, res) => {
   res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
 });
 
+app.use(errorLogger);
 app.use(errors()); // обработчик ошибок celebrate
 
 app.use((err, req, res, next) => {
